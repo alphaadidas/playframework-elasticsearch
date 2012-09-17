@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
@@ -35,6 +36,8 @@ import org.elasticsearch.common.settings.ImmutableSettings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
+
+import com.emeraldworks.elasticsearch.ElasticSearchHttpClient;
 
 import play.Logger;
 import play.Play;
@@ -197,26 +200,21 @@ public class ElasticSearchPlugin extends PlayPlugin {
 
 		} else {
 			Logger.info("Connecting Play! to Elastic Search in Client Mode");
-			final TransportClient c = new TransportClient(settings);
+			final ElasticSearchHttpClient c  = new ElasticSearchHttpClient(settings);			
+			
 			if (Play.configuration.getProperty("elasticsearch.client") == null) {
 				throw new RuntimeException("Configuration required - elasticsearch.client when local model is disabled!");
 			}
-			final String[] hosts = getHosts().trim().split(",");
-			boolean done = false;
-			for (final String host : hosts) {
-				final String[] parts = host.split(":");
-				if (parts.length != 2) {
-					throw new RuntimeException("Invalid Host: " + host);
-				}
-				Logger.info("Transport Client - Host: %s Port: %s", parts[0], parts[1]);
-				if (Integer.valueOf(parts[1]) == 9200)
-					Logger.info("Note: Port 9200 is usually used by the HTTP Transport. You might want to use 9300 instead.");
-				c.addTransportAddress(new InetSocketTransportAddress(parts[0], Integer.valueOf(parts[1])));
-				done = true;
-			}
-			if (done == false) {
+			
+			//get the HTTP host
+			final String host = getHosts().trim(); //should only be one
+			
+			if(!StringUtils.isEmpty(host)){
+				c.setServiceUrl(host);
+			}else{
 				throw new RuntimeException("No Hosts Provided for Elastic Search!");
 			}
+			
 			client = c;
 		}
 
