@@ -6,7 +6,6 @@ require:
     - play
     - play -> crud
     - org.elasticsearch -> elasticsearch 0.19.3
-    - com.emeraldworks -> elasticsearch-http-client 0.0.1-SNAPSHOT
     - se.scalablesolutions.akka -> akka-amqp 1.1.2
     
     
